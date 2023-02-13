@@ -25,7 +25,7 @@ jobs:
         run: dotnet build EveMiningFleet.API/EveMiningFleet.API.csproj --configuration Release --no-restore
 
       - name: Test with the dotnet CLI
-        run: dotnet test EveMiningFleet.API.Test/EveMiningFleet.API.Test.csproj --verbosity normal --no-build --collect:"XPlat Code Coverage" --results-directory coverage
+        run: dotnet test EveMiningFleet.API.Test/EveMiningFleet.API.Test.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
       - name: Copy Coverage to Predictable Location
         run: cp coverage/*/coverage.cobertura.xml coverage/coverage.cobertura.xml
