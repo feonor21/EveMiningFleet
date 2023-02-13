@@ -16,7 +16,7 @@ namespace EveMiningFleet.API.Test.Controllers
         private EveMiningFleetContext eveMiningFleetContext;
         private CharacterController mycontroller;
 
- 
+
 
         [SetUp]
         public void Setup()
