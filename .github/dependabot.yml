@@ -21,3 +21,6 @@ updates:
       schedule:
           interval: weekly
           day: sunday
+      ignore:
+        - dependency-name: "Microsoft.AspNetCore.Authentication.JwtBearer"
+          update-types: ["version-update:semver-major"]
