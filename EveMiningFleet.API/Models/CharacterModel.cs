@@ -1,11 +1,4 @@
-﻿using EveMiningFleet.Entities;
-using EveMiningFleet.Entities.DbSet;
-using EveMiningFleet.Logic.Repository;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using EveMiningFleet.Entities.DbSet;
 
 
 namespace EveMiningFleet.API.Models

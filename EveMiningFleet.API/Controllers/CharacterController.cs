@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using EveMiningFleet.API.Models;
 using EveMiningFleet.Entities.DbSet;
 using EveMiningFleet.Entities;
-using EveMiningFleet.Logic.Repository;
 using EveMiningFleet.API.Services;
 
 namespace EveMiningFleet.API.Controllers
@@ -42,24 +41,23 @@ namespace EveMiningFleet.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Get([FromQuery]int? id = null, [FromQuery] string name = null)
         {
-            CharacterService characterService = new CharacterService(eveMiningFleetContext);
-
             //get all
             if (!id.HasValue && name == null)
                 return BadRequest("At least one parameter");
+            if (id.HasValue && name != null)
+                return BadRequest("At least one parameter");
 
+            CharacterService characterService = new CharacterService(eveMiningFleetContext);
             //get from id
             if (id.HasValue && name == null)
             {
-                var _Character = characterService.GetById(id.Value);
+                var _Character = characterService.Get(id.Value);
                 if (_Character != null)
                     return Ok(_Character);
                 else
                     return NotFound();
             }
-
-            // get from name
-            if (!id.HasValue && name != null)
+            else
             {
                 var allCharacter = characterService.GetByName(name);
                 if (allCharacter.Count() > 0)
@@ -71,6 +69,7 @@ namespace EveMiningFleet.API.Controllers
             return BadRequest("Just one parameter at same time");
 
         }
+        
         /// <summary>
         /// Get a list of characters associated with the current user
         /// </summary>
@@ -108,7 +107,7 @@ namespace EveMiningFleet.API.Controllers
             if(!characterService.GetByMainId(tokenCharacter.CharacterMainId).Any(x => x.Id == mainId))
                 return BadRequest("You are not authorized to set this character as main");
 
-            characterService.SetMainId(tokenCharacter.CharacterMainId, mainId);
+            characterService.UpdateMainId(tokenCharacter.CharacterMainId, mainId);
             return Ok(TokenService.Createtoken(mainId));
         }
 

@@ -1,7 +1,7 @@
 using EveMiningFleet.API.Models;
 using EveMiningFleet.Entities;
 using EveMiningFleet.Entities.DbSet;
-using EveMiningFleet.Logic.Repository;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,17 +10,15 @@ namespace EveMiningFleet.API.Services
     public class FleetService
     {
         private EveMiningFleetContext eveMiningFleetContext;
-        private FleetRepository fleetRepository;
 
         public FleetService(EveMiningFleetContext _eveMiningFleetContext)
         {
             eveMiningFleetContext = _eveMiningFleetContext;
-            fleetRepository = new FleetRepository(eveMiningFleetContext);
         }
 
         public FleetModel GetById(int idfleet)
         {
-            Entities.DbSet.Fleet fleet = fleetRepository.GetSimple().FirstOrDefault(x=> x.Id == idfleet);
+            Entities.DbSet.Fleet fleet = eveMiningFleetContext.fleets.Include("Character").Include("Corporation").Include("Alliance").Include("Fleetcharacters.Character").FirstOrDefault(x=> x.Id == idfleet);
             if (fleet == null)
                 return null;
             else
@@ -28,12 +26,11 @@ namespace EveMiningFleet.API.Services
         }
         public List<FleetModel> GetAllByViewRight(typeview viewRight , Character mainCharacter)
         {
-            IQueryable<Fleet> allFleet = fleetRepository.GetSimple();
+            IQueryable<Fleet> allFleet = eveMiningFleetContext.fleets.Include("Character").Include("Corporation").Include("Alliance").Include("Fleetcharacters.Character");
 
 
 
-            var characterRepository = new CharacterRepository(eveMiningFleetContext);
-            var characters = characterRepository.GetSimple().Where(_character => _character.CharacterMainId == mainCharacter.CharacterMainId);
+            var characters = eveMiningFleetContext.characters.Include("Corporation").Include("Alliance").Where(_character => _character.CharacterMainId == mainCharacter.CharacterMainId);
             switch (viewRight)
             {
                 case typeview.viewPublic:
@@ -56,13 +53,12 @@ namespace EveMiningFleet.API.Services
         }
         public bool AuthoriseToSeeFleet(int idfleet, Character mainCharacter)
         {
-            var fleet = fleetRepository.GetSimple().FirstOrDefault(_fleet => _fleet.Id == idfleet);
+            var fleet = eveMiningFleetContext.fleets.Include("Character").Include("Corporation").Include("Alliance").Include("Fleetcharacters.Character").FirstOrDefault(_fleet => _fleet.Id == idfleet);
             if (fleet == null)
                 return false;
             else
             {
-                var characterRepository = new CharacterRepository(eveMiningFleetContext);
-                var characters = characterRepository.GetSimple().Where(_character => _character.CharacterMainId == mainCharacter.CharacterMainId);
+                var characters = eveMiningFleetContext.characters.Include("Corporation").Include("Alliance").Where(_character => _character.CharacterMainId == mainCharacter.CharacterMainId);
                 switch ((typeview)fleet.ViewRight)
                 {
                     case typeview.viewPublic:
@@ -81,7 +77,7 @@ namespace EveMiningFleet.API.Services
         public FleetModel CreateFleet(FleetModel fleetModel)
         {
             CharacterService characterService = new CharacterService(eveMiningFleetContext);
-            var fleetCreator = characterService.GetById(fleetModel.Character.Id);
+            var fleetCreator = characterService.Get(fleetModel.Character.Id);
             
             Entities.DbSet.Fleet fleet = new Entities.DbSet.Fleet();
             fleet.CharacterId = fleetCreator.Id;

@@ -40,7 +40,6 @@ namespace EveMiningFleet.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> CallbackCCP([FromQuery] string code, [FromQuery] string state = null)
         {
-            bool requestcreatetoken = true;
             if (code == "")
                 return Unauthorized();
 
@@ -55,71 +54,22 @@ namespace EveMiningFleet.API.Controllers
                 return Unauthorized();
             }
 
-            Character characterConnexion;
+            var characterService = new CharacterService(eveMiningFleetContext);
+            var corporationService = new CorporationService(eveMiningFleetContext);
+            var allianceService = new AllianceService(eveMiningFleetContext);
+
+            allianceService.GetOrCreate(_eveEsiConnexion.authorizedCharacterData.AllianceID);
+            corporationService.GetOrCreate(_eveEsiConnexion.authorizedCharacterData.CorporationID);
+
+            var characterAuthorized = characterService.GetAndUpdateByauthorizedCharacterData(_eveEsiConnexion.authorizedCharacterData, _eveEsiConnexion.ssoToken);
+
+            int mainCharacterId = characterAuthorized.Id;
            
-            //on recupere la corp du joueur qui viens de ce connecter si on le connais pas on l'insert dans la table coorp
-            Corporation corporation = eveMiningFleetContext.corporations.FirstOrDefault((x) => x.Id == _eveEsiConnexion.authorizedCharacterData.CorporationID);
-            if (corporation == null)
-            {
-                corporation = new Corporation();
-                corporation.Id = _eveEsiConnexion.authorizedCharacterData.CorporationID;
-                corporation.Name = EsiCorporation.GetName(corporation.Id);
-                eveMiningFleetContext.corporations.Add(corporation);
-            }
-
-            //on recupere l'alliance du joueur qui viens de ce connecter si on le connais pas on l'insert dans la table alliance
-            Alliance alliance = eveMiningFleetContext.alliances.FirstOrDefault((x) => x.Id == _eveEsiConnexion.authorizedCharacterData.AllianceID);
-            if (alliance == null)
-            {
-                alliance = new Alliance();
-                alliance.Id = _eveEsiConnexion.authorizedCharacterData.AllianceID;
-                alliance.Name = EsiAlliance.GetName(alliance.Id);
-                eveMiningFleetContext.alliances.Add(alliance);
-            }
-
-            //on recupere enfin le joueur et si jamais on le connais pas on l'insert
-            characterConnexion = eveMiningFleetContext.characters.FirstOrDefault((x) => x.Id == _eveEsiConnexion.authorizedCharacterData.CharacterID);
-            if (characterConnexion == null)
-            {
-                characterConnexion = new Character();
-
-                characterConnexion.Id = _eveEsiConnexion.authorizedCharacterData.CharacterID;
-                characterConnexion.CharacterMainId = _eveEsiConnexion.authorizedCharacterData.CharacterID;
-                characterConnexion.CharacterMain = characterConnexion;
-                eveMiningFleetContext.characters.Add(characterConnexion);
-            }
-
-            characterConnexion.AllianceId = _eveEsiConnexion.authorizedCharacterData.AllianceID;
-            characterConnexion.CorporationId = _eveEsiConnexion.authorizedCharacterData.CorporationID;
-            //on met a jours les informations du player.
-            characterConnexion.Name = _eveEsiConnexion.authorizedCharacterData.CharacterName;
-            characterConnexion.Token = _eveEsiConnexion.ssoToken.AccessToken;
-            characterConnexion.RefreshToken = _eveEsiConnexion.ssoToken.RefreshToken;
-
-
-            characterConnexion.CharacterMainId = _eveEsiConnexion.authorizedCharacterData.CharacterID;
             //ici on met a jour le mainid
-            if (state!= null)
-            {
-                int TokenCharacterId = -1;
-                if (int.TryParse(state, out TokenCharacterId))
-                {
-                    // on a bien un characterid dans le state
-                    var TokenCharacter = eveMiningFleetContext.characters.Find(TokenCharacterId);
-                    if (TokenCharacter != null)
-                    {
-                        characterConnexion.CharacterMainId = TokenCharacter.CharacterMainId;
-                        requestcreatetoken = false;
-                    }
-                }
-            }
+            if (state!= null && int.TryParse(state, out mainCharacterId))
+                characterService.SetMain(characterAuthorized.Id, mainCharacterId);
 
-            eveMiningFleetContext.SaveChanges();
-
-            if (requestcreatetoken)
-                return Ok(TokenService.Createtoken(characterConnexion.Id));
-            else
-                return Ok("Token Always Available.");
+            return Ok(TokenService.Createtoken(mainCharacterId));
         }
 
 
