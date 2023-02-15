@@ -94,7 +94,7 @@ namespace EveMiningFleet.API.Services
             var resultInsert = new FleetModel(fleet);
             return resultInsert;
         }
-        
+        //TODO: cree la function join fleet dans les service
         public enum typeview
         {
             viewPrivate = 0,

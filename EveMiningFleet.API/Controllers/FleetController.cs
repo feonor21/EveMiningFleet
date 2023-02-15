@@ -86,12 +86,34 @@ namespace EveMiningFleet.API.Controllers
             }
             else
                 return BadRequest("Invalid fleetmodel");
-        }  
-     
-    
-    
-    
-    
+        }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FleetModel))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult JoinFleet([FromQuery] int fleetId, [FromQuery] string joinToken, [FromQuery] int characterID)
+        {
+            //TODO: finaliser le joind fleet
+            var tokenCharacter = TokenService.GetCharacterFromToken(eveMiningFleetContext, HttpContext);
+            if (tokenCharacter == null)
+                return Unauthorized("Problem for get you character link to your token.");
+
+            CharacterService characterService = new CharacterService(eveMiningFleetContext);
+            if (!characterService.GetByMainId(tokenCharacter.Id).Any(_x => _x.Id == characterID))
+                return Unauthorized("You try to join a fleet with a character not link to your account");
+
+
+            //FleetService fleetService = new FleetService(eveMiningFleetContext);
+            //var result = fleetService.joinFleet(fleet);
+            //if (result != null)
+            //    return Ok(result);
+            //else
+            //    return BadRequest("Problem for create fleet, if problem persist contact administrator");
+        }
+
+
+
+
     }
 
 }

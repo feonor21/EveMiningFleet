@@ -306,9 +306,10 @@ namespace EveMiningFleet.API.Test.Controllers
             Assert.IsNotNull(result);
             Assert.IsInstanceOf<UnauthorizedObjectResult>(result);
         }
-   
 
 
+
+        //TODO: faire les test de create et join fleet
         [Test]
         public void CreateFleet_WithOutTokenAndIncorrectModel_ShouldReturnUnauthorized()
         {
