@@ -309,7 +309,7 @@ namespace EveMiningFleet.API.Test.Controllers
 
 
 
-        //TODO: faire les test de create et join fleet
+
         [Test]
         public void CreateFleet_WithOutTokenAndIncorrectModel_ShouldReturnUnauthorized()
         {
